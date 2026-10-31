@@ -86,7 +86,14 @@ namespace DockRotate
 			StartCoroutine(welder.doWeld(EVAmodule));
 		}
 
-		private BaseEvent SwitchToReadyEvent = null;
+        public void disableWeld()
+        {
+            welder = null;
+            if (WeldEvent != null)
+                WeldEvent.guiActiveUnfocused = false;
+        }
+
+        private BaseEvent SwitchToReadyEvent = null;
 		[KSPEvent(
 			guiName = "#DCKROT_switch_to_ready",
 			guiActive = false,

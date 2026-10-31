@@ -266,6 +266,7 @@ namespace DockRotate
 
 			if (rotCur.done()) {
 				log(desc(), ": removing rotation (done)");
+				controller.UpdateFARModel();
 				rotCur = null;
 				return;
 			}
@@ -275,7 +276,9 @@ namespace DockRotate
 				rotCur.brake();
 			rotCur.advance(Time.fixedDeltaTime);
 			controller.updateFrozenRotation("FIXED");
-		}
+            controller.UpdateFARModelRateLimited();
+
+        }
 
 		public void OnDestroy()
 		{

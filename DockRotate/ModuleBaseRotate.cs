@@ -1163,6 +1163,9 @@ UI_FloatRange(minValue = 1, maxValue = 360, stepIncrement = 1, scene = UI_Scene.
                             }
                         }
                 }
+
+				UpdateFARModel();
+
 				return true;
 			}
 
@@ -1262,7 +1265,44 @@ UI_FloatRange(minValue = 1, maxValue = 360, stepIncrement = 1, scene = UI_Scene.
 				+ prev.desc() + " -> " + frozenRotation.desc());
 		}
 
-		private int lastUsefulFixedUpdate = 0;
+        private float FARNextUpdateTime = 0f;
+        private float prevFARUpdatePos = 0f;
+
+        public void UpdateFARModelRateLimited()
+        {
+            if (Time.time < FARNextUpdateTime)
+                return;
+			
+			FARNextUpdateTime = Time.time + 0.5f;
+
+			UpdateFARModel();
+        }
+
+		public void UpdateFARModel()
+		{
+            // Did take a peek at Infernal Robotics and FAR to see what was being called,
+			// so credit where credit is due. When checking the FAR code I found an additional
+			// `UpdateVoxelShape` call that `GeometryPartModule.CheckAnimations()` calls, which
+			// IR doesn't, and it does indeed seem to be necessary for correct function...
+            if (Math.Abs(prevFARUpdatePos - anglePosition) < 0.005f) return;
+
+            part.SendMessage("UpdateShapeWithAnims");
+            List<Part> parts = part.children;
+            if (parts != null)
+            {
+                for (int i = 0; i < parts.Count; ++i)
+                {
+                    if (parts[i] == null) continue;
+                    parts[i].SendMessage("UpdateShapeWithAnims");
+                }
+            }
+
+            part.SendMessage("UpdateVoxelShape");
+
+            prevFARUpdatePos = anglePosition;
+        }
+
+        private int lastUsefulFixedUpdate = 0;
 
 		public void FixedUpdate()
 		{
